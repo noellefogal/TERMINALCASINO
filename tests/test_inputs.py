@@ -40,7 +40,7 @@ def test_name_select_rejects_empty_name_and_accepts_valid_name():
 def test_interrupt():
     with patch("casino.main.cinput", side_effect=KeyboardInterrupt):
         with pytest.raises(KeyboardInterrupt):
-            main()
+            main("TEST")
 
 def test_invalid_game():
     ctx = GameContext(account=Account.generate('test', 100), config=Config.default())
