@@ -36,40 +36,54 @@ def test_bust():
     """
     ctx = GameContext(account=Account.generate('test', 100),config=Config.default())
     blackjack = StandardBlackjack(ctx)
-    player = blackjack.players[0]
-    player.bet = 10
+    player = blackjack.player
+
     #First test case where the player busts and loses
-    blackjack.deal_cards()
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    blackjack.dealer_hand = Hand()
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts", rank="9"))
     #Add cards to the player's hand to ensure that they lose
-    while player.hand_total <= 21:
-        player.hand.append(StandardCard(suit="hearts",rank="K"))
+    while player_hand.total <= 21:
+        player_hand.cards.append(StandardCard(suit="hearts",rank="K"))
     blackjack.check_win()
-    assert(blackjack.player_win_status[0]=='lose')
-    assert ('bust' in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'player_bust')
+    assert('BUSTED' in player_hand.outcome_msg)
 
     #Next case: Dealer busts and loses
-    blackjack.deal_cards()
-    while blackjack.dealer.hand_total <= 21:
-        blackjack.dealer.hand.append(StandardCard(suit="hearts",rank="K"))
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    blackjack.dealer_hand = Hand()
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="9"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
+    while blackjack.dealer_hand.total <= 21:
+        blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
     blackjack.check_win()
-    assert(blackjack.player_win_status[0]=='win')
-    assert ('bust' in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'dealer_bust')
+    assert('BUSTED' in player_hand.outcome_msg)
 
     #Next case: Player has 10-10-A and Dealer busts
-    blackjack.deal_cards()
-    player.hand[0] = StandardCard(suit="hearts",rank="K")
-    player.hand[1] = StandardCard(suit="hearts", rank="K")
-    player.hand.append(StandardCard(suit="hearts", rank="A"))
-    blackjack.dealer.hand[0] = StandardCard(suit="hearts",rank="K")
-    blackjack.dealer.hand[1] = StandardCard(suit="hearts",rank="K")
-    blackjack.dealer.hand.append(StandardCard(suit="hearts",rank="K"))
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    blackjack.dealer_hand = Hand()
+    player_hand.cards.append(StandardCard(suit="hearts",rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
+    blackjack.dealer_hand.cards.append(StandardCard(suit="hearts",rank="K"))
     blackjack.check_win()
-    assert(blackjack.player_win_status[0]=='win')
-    assert('bust' in blackjack.round_results[len(blackjack.round_results)-1])
+    assert(player_hand.result_key == 'dealer_bust')
+    assert('BUSTED' in player_hand.outcome_msg)
     #We will test the payout in this scenario as well
     balance = player.account.balance
     blackjack.payout()
-    assert(player.account.balance == (balance+player.bet*2))
+    assert(player.account.balance == (balance+player_hand.bet*2))
 
 def test_payout():
     """
