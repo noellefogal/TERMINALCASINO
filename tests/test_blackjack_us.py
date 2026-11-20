@@ -3,33 +3,32 @@ from casino.games.blackjack.variants.standard import *
 from casino.game_types import *
 
 #Add more tests as needed, potentially testing user inputs
-
 def test_aces():
     """
     Tests extreme cases for having aces in your hand to ensure calculation is correct
     """
-    player = Player(account=Account.generate('test', 100))
-    player.hand.append(StandardCard(suit="hearts", rank="A"))
-    player.hand.append(StandardCard(suit="hearts", rank="A"))
-    assert(player.hand_total == 12)
-    player.hand.append(StandardCard(suit="hearts", rank="A"))
-    player.hand[0].rank = 6
-    assert(player.hand_total == 18)
-    player.hand.pop(1)
-    assert(player.hand_total == 17)
-    player.hand[0].rank = 'A'
+    hand = Hand()
+    hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    assert(hand.total == 12)
+    hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    hand.cards[0].rank = 6
+    assert(hand.total == 18)
+    hand.cards.pop(1)
+    assert(hand.total == 17)
+    hand.cards[0].rank = 'A'
     total = 12
     while total < 21:
-        player.hand.append(StandardCard(suit="hearts", rank="A"))
+        hand.cards.append(StandardCard(suit="hearts", rank="A"))
         total += 1
-        assert(player.hand_total == total)
-    while len(player.hand) > 3:
-        player.hand.pop()
-    player.hand[0].rank = 10
-    player.hand[1].rank = 10
-    assert(player.hand_total == 21)
-    player.hand.pop(0)
-    assert(player.hand_total == 21)
+        assert(hand.total == total)
+    while len(hand.cards) > 3:
+        hand.cards.pop()
+    hand.cards[0].rank = 10
+    hand.cards[1].rank = 10
+    assert(hand.total == 21)
+    hand.cards.pop(0)
+    assert(hand.total == 21)
 
 def test_bust():
     """
