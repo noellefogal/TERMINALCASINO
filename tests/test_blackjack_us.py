@@ -153,7 +153,7 @@ def test_payout():
     blackjack.payout()
     #Balance should be higher by the amount bet since it is returned in the case of a tie
     assert(player.account.balance == (balance+player_hand.bet))
-    
+
 def test_blackjack_payout():
     """
     Tests the wins/payouts for every blackjack scenario
@@ -165,74 +165,100 @@ def test_blackjack_payout():
     """
     ctx = GameContext(account=Account.generate('test', 100), config=Config.default())
     blackjack = StandardBlackjack(ctx)
-    player = blackjack.players[0]
-    dealer = blackjack.dealer
-    player.bet = 10
+    player = blackjack.player
+
     #Case 1: Both the dealer and the player get blackjack
-    player.hand.append(StandardCard(suit="hearts", rank="A"))
-    player.hand.append(StandardCard(suit="hearts", rank="K"))
-    dealer.hand.append(StandardCard(suit="hearts", rank="A"))
-    dealer.hand.append(StandardCard(suit="hearts", rank=10))
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    dealer_hand = Hand()
+    blackjack.dealer_hand = dealer_hand
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
     #Make sure the win result is correct
     blackjack.blackjack_check()
-    assert player.has_blackjack and dealer.has_blackjack
+    assert player_hand.is_blackjack and dealer_hand.is_blackjack
     blackjack.check_win()
-    assert(blackjack.player_win_status[0] == 'tie')
-    assert('blackjack' in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'blackjack_tie')
     #Test the payout
     balance = player.account.balance
     blackjack.payout()
-    assert(player.account.balance == (balance+player.bet))
+    assert(player.account.balance == (balance+player_hand.bet))
 
     #Case 2: The player gets blackjack and the dealer does not
-    dealer.hand[0].rank = 10
-    dealer.hand[1].rank = 'A'
-    dealer.hand.append(StandardCard(suit="hearts", rank="A"))
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    dealer_hand = Hand()
+    blackjack.dealer_hand = dealer_hand
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
     #Make sure the results are correct
     blackjack.blackjack_check()
-    assert(player.has_blackjack and not dealer.has_blackjack)
+    assert(player_hand.is_blackjack and not dealer_hand.is_blackjack)
     blackjack.check_win()
-    assert(blackjack.player_win_status[0] == 'win')
-    assert('blackjack' in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'player_blackjack')
     #Test the payout
     balance = player.account.balance
     blackjack.payout()
-    assert(player.account.balance == (balance+player.bet*(1+BLACKJACK_MULTIPLIER)))
+    assert(player.account.balance == (balance+player_hand.bet*(1+BLACKJACK_MULTIPLIER)))
 
     #Case 3: Player has blackjack, dealer 21 with more than 2 cards
-    dealer.hand[1].rank = 10
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    dealer_hand = Hand()
+    blackjack.dealer_hand = dealer_hand
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
     blackjack.blackjack_check()
-    assert player.has_blackjack and not dealer.has_blackjack
+    assert player_hand.is_blackjack and not dealer_hand.is_blackjack
     blackjack.check_win()
-    assert(blackjack.player_win_status[0] == 'win')
-    assert('blackjack' in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'player_blackjack')
     #Test the payout
     balance = player.account.balance
     blackjack.payout()
-    assert(player.account.balance == (balance+player.bet*(1+BLACKJACK_MULTIPLIER)))
+    assert(player.account.balance == (balance+player_hand.bet*(1+BLACKJACK_MULTIPLIER)))
 
     #Case 4: Both dealer and player have 21 but more than 2 cards
-    player.hand[0].rank = 'K'
-    player.hand.append(StandardCard(suit="hearts", rank='A'))
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    dealer_hand = Hand()
+    blackjack.dealer_hand = dealer_hand
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="10"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
     blackjack.blackjack_check()
-    assert not(player.has_blackjack or dealer.has_blackjack)
+    assert not(player_hand.is_blackjack or dealer_hand.is_blackjack)
     blackjack.check_win()
-    assert(blackjack.player_win_status[0] == 'tie')
-    assert ('blackjack' not in blackjack.round_results[len(blackjack.round_results) - 1])
+    assert(player_hand.result_key == 'tie')
     #Test the payout
     balance = player.account.balance
     blackjack.payout()
-    assert(player.account.balance == (balance+player.bet))
+    assert(player.account.balance == (balance+player_hand.bet))
 
     #Case 5: Player has 21 but dealer has blackjack
-    dealer.hand.pop()
-    dealer.hand[0].rank = 'A'
-    dealer.hand[1].rank = 'Q'
+    player_hand = Hand(bet=10)
+    player.hands = [player_hand]
+    dealer_hand = Hand()
+    blackjack.dealer_hand = dealer_hand
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="K"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="A"))
+    dealer_hand.cards.append(StandardCard(suit="hearts", rank="Q"))
     blackjack.blackjack_check()
-    assert not player.has_blackjack and dealer.has_blackjack
+    assert not player_hand.is_blackjack and dealer_hand.is_blackjack
     blackjack.check_win()
-    assert(blackjack.player_win_status[0] == 'lose')
-    assert 'blackjack' in blackjack.round_results[len(blackjack.round_results) - 1]
+    assert(player_hand.result_key == 'dealer_blackjack')
     #Test the payout
     balance = player.account.balance
     blackjack.payout()
@@ -247,15 +273,23 @@ def test_dealer_decision():
     """
     ctx = GameContext(account=Account.generate('test', 100), config=Config.default())
     blackjack = StandardBlackjack(ctx)
-    dealer = blackjack.dealer
-    dealer.hand.append(StandardCard(suit="hearts", rank="K"))
-    dealer.hand.append(StandardCard(suit="hearts", rank=8))
+
+    player_hand = Hand()
+    blackjack.player.hands = [player_hand]
+    player_hand.cards.append(StandardCard(suit="hearts", rank="2"))
+    player_hand.cards.append(StandardCard(suit="hearts", rank="3"))
+
+    dealer = blackjack.dealer_hand
+    dealer.cards.append(StandardCard(suit="hearts", rank="K"))
+    dealer.cards.append(StandardCard(suit="hearts", rank=8))
     blackjack.dealer_draw()
-    assert(len(dealer.hand) == 2)
-    dealer.hand[1].rank = 6
+    assert(len(dealer.cards) == 2)
+
+    dealer.cards[1].rank = 6
     blackjack.dealer_draw()
-    assert(len(dealer.hand) == 3)
-    dealer.hand.pop()
-    dealer.hand[0].rank = 'A'
+    assert(len(dealer.cards) == 3)
+
+    dealer.cards.pop()
+    dealer.cards[0].rank = 'A'
     blackjack.dealer_draw()
-    assert(len(dealer.hand) == 2)
+    assert(len(dealer.cards) == 2)
